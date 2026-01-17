@@ -12,8 +12,8 @@ const PORT = process.env.PORT || 3000;
 
 // API配置
 const API_CONFIG = {
-    url: process.env.API_URL || 'https://ark.cn-beijing.volces.com/api/v3/chat/completions',
-    apiKey: process.env.API_KEY || 'your_default_api_key_here', // 从环境变量获取API密钥
+    url: process.env.DEEPSEEK_API_URL || process.env.API_URL || 'https://ark.cn-beijing.volces.com/api/v3/chat/completions',
+    apiKey: process.env.DEEPSEEK_API_KEY || process.env.API_KEY || 'your_default_api_key_here', // 从环境变量获取API密钥
     model: process.env.MODEL || 'deepseek-r1-250528',
     timeout: 60000, // 60秒超时
     temperature: 0.6 // 温度设置
