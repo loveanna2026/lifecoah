@@ -40,11 +40,22 @@ app.options('*', cors());
 app.use(express.json());
 
 // 静态文件服务
-app.use(express.static(__dirname));
+// 在Vercel环境中，使用process.cwd()获取正确的工作目录
+const staticPath = path.join(process.cwd());
+app.use(express.static(staticPath));
 
 // 根路径路由，确保返回index.html
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
+    res.sendFile(path.join(staticPath, 'index.html'));
+});
+
+// 为静态文件添加直接路由支持
+app.get('/style.css', (req, res) => {
+    res.sendFile(path.join(staticPath, 'style.css'));
+});
+
+app.get('/script.js', (req, res) => {
+    res.sendFile(path.join(staticPath, 'script.js'));
 });
 
 // 聊天API端点
