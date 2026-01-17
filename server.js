@@ -4,6 +4,7 @@
 const express = require('express');
 const cors = require('cors');
 const fetch = require('node-fetch');
+const path = require('path');
 require('dotenv').config();
 
 const app = express();
@@ -11,8 +12,8 @@ const PORT = process.env.PORT || 3000;
 
 // API配置
 const API_CONFIG = {
-    url: process.env.API_URL || 'https://ark.cn-beijing.volces.com/api/v3/chat/completions',
-    apiKey: process.env.API_KEY || 'your_default_api_key_here', // 从环境变量获取API密钥
+    url: process.env.DEEPSEEK_API_URL || process.env.API_URL || 'https://ark.cn-beijing.volces.com/api/v3/chat/completions',
+    apiKey: process.env.DEEPSEEK_API_KEY || process.env.API_KEY || 'your_default_api_key_here', // 从环境变量获取API密钥
     model: process.env.MODEL || 'deepseek-r1-250528',
     timeout: 60000, // 60秒超时
     temperature: 0.6 // 温度设置
@@ -39,7 +40,23 @@ app.options('*', cors());
 app.use(express.json());
 
 // 静态文件服务
-app.use(express.static(__dirname));
+// 在Vercel环境中，使用process.cwd()获取正确的工作目录
+const staticPath = path.join(process.cwd());
+app.use(express.static(staticPath));
+
+// 根路径路由，确保返回index.html
+app.get('/', (req, res) => {
+    res.sendFile(path.join(staticPath, 'index.html'));
+});
+
+// 为静态文件添加直接路由支持
+app.get('/style.css', (req, res) => {
+    res.sendFile(path.join(staticPath, 'style.css'));
+});
+
+app.get('/script.js', (req, res) => {
+    res.sendFile(path.join(staticPath, 'script.js'));
+});
 
 // 聊天API端点
 app.post('/api/chat', async (req, res) => {

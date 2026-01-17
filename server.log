@@ -1,0 +1,6 @@
+[dotenv@17.2.3] injecting env (4) from .env -- tip: 鈿欙笍  load multiple .env files with { path: ['.env.local', '.env'] }
+
+馃殌 AI Life Coach鏈嶅姟鍣ㄥ凡鍚姩锛?馃摗 鏈嶅姟鍣ㄥ湴鍧€: http://localhost:3000
+馃挰 鑱婂ぉAPI: http://localhost:3000/api/chat
+
+鍦ㄦ祻瑙堝櫒涓墦寮€ http://localhost:3000 鍗冲彲浣跨敤AI Life Coach锛?

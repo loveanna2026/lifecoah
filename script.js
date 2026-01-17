@@ -10,7 +10,7 @@ const API_CONFIG = {
 const DEBUG = true;
 
 // 页面元素
-let chatHistory, userInput, sendBtn, historyList, newChatBtn, batchDeleteBtn;
+let chatHistory, userInput, sendBtn, historyList, newChatBtn, batchDeleteBtn, historySidebar, toggleSidebarBtn;
 
 // 聊天数据管理
 let currentChatId = 1;
@@ -34,11 +34,14 @@ function init() {
     historyList = document.getElementById('historyList');
     newChatBtn = document.getElementById('newChatBtn');
     batchDeleteBtn = document.getElementById('batchDeleteBtn');
+    historySidebar = document.getElementById('historySidebar');
+    toggleSidebarBtn = document.getElementById('toggleSidebarBtn');
     
     // 添加事件监听器
     sendBtn.addEventListener('click', sendMessage);
     newChatBtn.addEventListener('click', startNewChat);
     batchDeleteBtn.addEventListener('click', batchDeleteChats);
+    toggleSidebarBtn.addEventListener('click', toggleSidebar);
     userInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
@@ -46,10 +49,23 @@ function init() {
         }
     });
     
+    // 点击历史对话项时关闭侧边栏（手机端）
+    document.addEventListener('click', (e) => {
+        const isHistoryItem = e.target.closest('.history-item');
+        if (isHistoryItem && window.innerWidth <= 768) {
+            historySidebar.classList.remove('active');
+        }
+    });
+    
     // 加载历史对话
     loadChats();
     
     console.log('AI Life Coach 初始化完成！');
+}
+
+// 切换侧边栏显示状态
+function toggleSidebar() {
+    historySidebar.classList.toggle('active');
 }
 
 // 发送消息
@@ -234,6 +250,7 @@ async function callAPIWithStreaming(messageContentElement, currentMessages) {
         const decoder = new TextDecoder();
         let buffer = '';
         let contentPara = messageContentElement.querySelector('p');
+        let fullResponseText = ''; // 收集完整的响应文本
         
         console.log('Starting to process stream...');
         
@@ -259,15 +276,17 @@ async function callAPIWithStreaming(messageContentElement, currentMessages) {
                     if (line.startsWith('data: ')) {
                         const jsonStr = line.slice(6).trim();
                         if (jsonStr === '[DONE]') {
-                            // 流式结束
+                            // 流式结束，跳出循环进行最终渲染
                             console.log('Stream done signal received');
-                            return;
+                            break;
                         }
                         
                         try {
                             const data = JSON.parse(jsonStr);
                             if (data.content) {
-                                // 更新消息内容
+                                fullResponseText += data.content;
+                                
+                                // 更新消息内容（临时纯文本显示）
                                 if (!contentPara) {
                                     contentPara = document.createElement('p');
                                     messageContentElement.appendChild(contentPara);
@@ -281,6 +300,32 @@ async function callAPIWithStreaming(messageContentElement, currentMessages) {
                             console.error('JSON解析错误:', parseError, '原始数据:', jsonStr);
                         }
                     }
+                }
+            }
+        }
+        
+        // 流式传输完成，对完整内容进行Markdown渲染
+        if (fullResponseText) {
+            try {
+                // 移除临时的纯文本显示
+                if (contentPara && contentPara.parentNode) {
+                    contentPara.remove();
+                }
+                
+                // 将完整的Markdown转换为HTML
+                const htmlContent = marked.parse(fullResponseText);
+                messageContentElement.innerHTML += htmlContent;
+                
+                // 滚动到底部
+                chatHistory.scrollTop = chatHistory.scrollHeight;
+            } catch (mdError) {
+                console.error('最终Markdown渲染错误:', mdError);
+                // 降级处理：如果渲染失败，保持原有文本
+                if (!contentPara || !contentPara.parentNode) {
+                    contentPara = document.createElement('p');
+                    contentPara.textContent = fullResponseText;
+                    messageContentElement.appendChild(contentPara);
+                    chatHistory.scrollTop = chatHistory.scrollHeight;
                 }
             }
         }
