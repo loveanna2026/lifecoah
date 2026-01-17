@@ -10,7 +10,7 @@ const API_CONFIG = {
 const DEBUG = true;
 
 // 页面元素
-let chatHistory, userInput, sendBtn, historyList, newChatBtn, batchDeleteBtn;
+let chatHistory, userInput, sendBtn, historyList, newChatBtn, batchDeleteBtn, historySidebar, toggleSidebarBtn;
 
 // 聊天数据管理
 let currentChatId = 1;
@@ -34,11 +34,14 @@ function init() {
     historyList = document.getElementById('historyList');
     newChatBtn = document.getElementById('newChatBtn');
     batchDeleteBtn = document.getElementById('batchDeleteBtn');
+    historySidebar = document.getElementById('historySidebar');
+    toggleSidebarBtn = document.getElementById('toggleSidebarBtn');
     
     // 添加事件监听器
     sendBtn.addEventListener('click', sendMessage);
     newChatBtn.addEventListener('click', startNewChat);
     batchDeleteBtn.addEventListener('click', batchDeleteChats);
+    toggleSidebarBtn.addEventListener('click', toggleSidebar);
     userInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
@@ -46,10 +49,23 @@ function init() {
         }
     });
     
+    // 点击历史对话项时关闭侧边栏（手机端）
+    document.addEventListener('click', (e) => {
+        const isHistoryItem = e.target.closest('.history-item');
+        if (isHistoryItem && window.innerWidth <= 768) {
+            historySidebar.classList.remove('active');
+        }
+    });
+    
     // 加载历史对话
     loadChats();
     
     console.log('AI Life Coach 初始化完成！');
+}
+
+// 切换侧边栏显示状态
+function toggleSidebar() {
+    historySidebar.classList.toggle('active');
 }
 
 // 发送消息
@@ -259,7 +275,7 @@ async function callAPIWithStreaming(messageContentElement, currentMessages) {
                     if (line.startsWith('data: ')) {
                         const jsonStr = line.slice(6).trim();
                         if (jsonStr === '[DONE]') {
-                            // 流式结束
+                            // 流式结束，直接返回函数
                             console.log('Stream done signal received');
                             return;
                         }
