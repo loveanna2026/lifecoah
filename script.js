@@ -259,9 +259,9 @@ async function callAPIWithStreaming(messageContentElement, currentMessages) {
                     if (line.startsWith('data: ')) {
                         const jsonStr = line.slice(6).trim();
                         if (jsonStr === '[DONE]') {
-                            // 流式结束，退出循环
+                            // 流式结束，直接返回函数
                             console.log('Stream done signal received');
-                            break;
+                            return;
                         }
                         
                         try {
